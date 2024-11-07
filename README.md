@@ -1,6 +1,7 @@
-![Am Yisrael Chai - עם ישראל חי](https://bennypowers.dev/assets/flag.am.yisrael.chai.png)
 
 # changesets.nvim
+
+Fork of [bennypowers/changesets.nvim](https://github.com/bennypowers/changesets.nvim)
 
 Easily create [changesets][cs] using your favourite editor.
 
@@ -11,7 +12,7 @@ Easily create [changesets][cs] using your favourite editor.
   <figcaption>
 
 Screencast showing how to use changesets.nvim to:
-1. pick a package from your project repo
+1. pick package(s) from your project repo
 2. pick a release type (`patch`, `minor`, or `major`)
 3. pick a file name (trivial)
 4. write your changeset
@@ -23,15 +24,15 @@ Screencast showing how to use changesets.nvim to:
 ## 🛌 Installation (Lazy)
 
 ```lua
-return { 'bennypowers/changesets.nvim',
-  dependencies = { 'lspconfig' },
+return { 'sudo-tee/changesets.nvim',
+  dependencies = { 'nvim-telescope/telescope.nvim' },
   keys = {
-    { '<leader>cs',
+    { '<leader>cxx',
       function() require'changesets'.create() end,
       mode = 'n',
       desc = 'Create a changeset',
     },
-    { '<leader>ca',
+    { '<leader>cxa',
       function() require'changesets'.add_package() end,
       mode = 'n',
       desc = 'Add a package to the changeset in the current buffer',
