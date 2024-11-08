@@ -26,6 +26,12 @@ Screencast showing how to use changesets.nvim to:
 ```lua
 return { 'sudo-tee/changesets.nvim',
   dependencies = { 'nvim-telescope/telescope.nvim' },
+
+  ---@module 'changesets'
+  ---@type changesets.Opts
+  opts = {
+    changeset_dir = '.changesets',
+  },
   keys = {
     { '<leader>cxx',
       function() require'changesets'.create() end,
@@ -39,6 +45,32 @@ return { 'sudo-tee/changesets.nvim',
     },
   },
 }
+```
+
+
+## ⚙️ Configuration
+
+The following options can be set when calling setup:
+
+```lua
+require('changesets').setup({
+  -- Root directory of your project (default: current working directory)
+  cwd = vim.fn.getcwd(),
+
+  -- Directory where changesets are stored (default: '.changesets')
+  changeset_dir = '.changesets',
+
+  -- Marker shown next to changed packages (default: '~')
+  changed_packages_marker = '~',
+
+  -- Highlight group for changed packages (default: 'TelescopeResultsConstant')
+  changed_packages_highlight = 'TelescopeResultsConstant',
+
+  -- Function that returns default text for new changesets (default: returns empty string)
+  get_default_text = function()
+    return ''
+  end,
+}) 
 ```
 
 [cs]: https://github.com/changesets/changesets
