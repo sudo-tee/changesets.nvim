@@ -105,7 +105,8 @@ end
 ---@param lines string[] the contents of the changeset
 local function on_enter_name(lines)
   return function(filename)
-    vim.cmd('e ' .. '.changeset/' .. filename .. '.md')
+    local filepath = utils.joinpath(config.opts().changeset_dir, filename .. '.md')
+    vim.cmd('e ' .. filepath)
     vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
     vim.api.nvim_win_set_cursor(0, { #lines, 0 })
     vim.cmd('startinsert')
@@ -130,7 +131,7 @@ local function select_changeset_name(package_list)
       package_list,
       '---',
       '',
-      '',
+      config.opts().get_default_text(),
     }))
   )
 end
