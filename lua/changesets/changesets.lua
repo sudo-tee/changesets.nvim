@@ -222,7 +222,7 @@ function M.make_operation(operation)
   local select = on_select_packages(operation)
 
   return function()
-    M.changed_files_cache = git.get_changed_files()
+    M.changed_files_cache = git.get_changed_folders()
     if operation == 'add' and vim.bo.filetype ~= 'markdown' then
       print('Current buffer is not a changeset')
       return

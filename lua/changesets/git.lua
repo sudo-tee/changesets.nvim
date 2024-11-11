@@ -17,21 +17,28 @@ function M.default_git_branch()
   return vim.trim(vim.fn.system(git_cmd("branch -l main master --format '%(refname:short)'")))
 end
 
----Get the list of files that changed between (main/master) and the current branches
----@return string[]
-function M.get_changed_files()
+---Gets all folders containing files that changed between the default branch and current branch
+---@return string[] List of changed folder paths, sorted by path length (most specific first)
+function M.get_changed_folders()
   local cwd = config.opts().cwd
   local default_branch = M.default_git_branch()
-  local files = vim.fn.systemlist(git_cmd('diff --name-only ' .. default_branch))
+  local changed_files = vim.fn.systemlist(git_cmd('diff --name-only ' .. default_branch))
+  local uniq = {}
+  local folders = {}
 
-  local unique_folders = {}
-
-  for _, file in ipairs(files) do
+  for _, file in ipairs(changed_files) do
     local folder = utils.dirname(utils.joinpath(cwd, file))
-    unique_folders[folder] = true
+    if not uniq[folder] then
+      uniq[folder] = true
+      table.insert(folders, folder)
+    end
   end
 
-  return vim.tbl_keys(unique_folders)
+  table.sort(folders, function(a, b)
+    return #a > #b
+  end)
+
+  return folders
 end
 
 ---Find files in git repository matching the given pattern
