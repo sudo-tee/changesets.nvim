@@ -1,7 +1,5 @@
-local map = vim.tbl_map
-local empty = vim.tbl_isempty
 local config = require('changesets.opts')
-local utils = require('changesets.utils')
+local u = require('changesets.utils')
 local git = require('changesets.git')
 
 local M = {}
@@ -27,8 +25,8 @@ local function get_package_name(path)
 end
 
 local function find_all_package_jsons()
-  return map(function(path)
-    return utils.joinpath(config.opts().cwd, path)
+  return u.map(function(path)
+    return u.joinpath(config.opts().cwd, path)
   end, git.find_files("'package.json' '**/package.json'"))
 end
 
@@ -81,20 +79,34 @@ local function select_packages(items, prompt, format_entry, callback)
         end,
       }),
       sorter = conf.generic_sorter({}),
-      attach_mappings = function(bufnr)
+      attach_mappings = function(bufnr, map)
         actions.select_default:replace(function()
           local selections = action_state.get_current_picker(bufnr):get_multi_selection()
 
-          if empty(selections) then
+          if u.empty(selections) then
             selections = { action_state.get_selected_entry() }
           end
 
           actions.close(bufnr)
 
-          callback(map(function(s)
+          callback(u.map(function(s)
             return s.value
           end, selections))
         end)
+
+        local function select_all_changed()
+          local picker = action_state.get_current_picker(bufnr)
+          for _, entry in ipairs(picker.finder.results) do
+            if entry.value.changed then
+              picker._multi:add(entry)
+            end
+          end
+
+          picker:refresh()
+        end
+
+        map('i', '<C-a>', select_all_changed)
+
         return true
       end,
     })
@@ -105,7 +117,7 @@ end
 ---@param lines string[] the contents of the changeset
 local function on_enter_name(lines)
   return function(filename)
-    local filepath = utils.joinpath(config.opts().changeset_dir, filename .. '.md')
+    local filepath = u.joinpath(config.opts().changeset_dir, filename .. '.md')
     vim.cmd('e ' .. filepath)
     vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
     vim.api.nvim_win_set_cursor(0, { #lines, 0 })
@@ -126,7 +138,7 @@ local function select_changeset_name(package_list)
       prompt = 'Enter changeset name',
       default = require('changesets.random').humanId(),
     },
-    on_enter_name(utils.flatten({
+    on_enter_name(u.flatten({
       '---',
       package_list,
       '---',
@@ -138,11 +150,11 @@ end
 
 local function update_current_changeset(package_list)
   local lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
-  local header_end_line = utils.find_last_occurrence(lines, '---')
+  local header_end_line = u.find_last_occurrence(lines, '---')
 
   table.insert(lines, header_end_line, package_list)
 
-  vim.api.nvim_buf_set_lines(0, 0, -1, true, utils.flatten(lines))
+  vim.api.nvim_buf_set_lines(0, 0, -1, true, u.flatten(lines))
 end
 
 ---Given the name of a package to change, and the type of a release to generate,
@@ -156,7 +168,7 @@ local function on_select_release(packages, operation)
       return
     end
 
-    local package_list = map(function(package)
+    local package_list = u.map(function(package)
       return format(package.name, type)
     end, packages)
 
@@ -180,7 +192,7 @@ end
 local function on_select_packages(operation)
   ---@param packages Package[]
   return function(packages)
-    if empty(packages) then
+    if u.empty(packages) then
       return
     end
 
@@ -190,7 +202,7 @@ end
 
 local function path_is_changed(path)
   local folder = vim.fn.fnamemodify(path, ':h')
-  return utils.contains(M.changed_files_cache, utils.start_with(folder))
+  return u.contains(M.changed_files_cache, u.start_with(folder))
 end
 
 ---Sort packages by their changed status and name
@@ -208,7 +220,7 @@ end
 ---found in the project directory.
 ---@return Package[]
 local function get_workspace_packages()
-  local packages = map(function(path)
+  local packages = u.map(function(path)
     return { path = path, name = get_package_name(path), changed = path_is_changed(path) }
   end, find_all_package_jsons())
 
@@ -232,7 +244,7 @@ function M.make_operation(operation)
     if #packages == 1 then
       select(unpack(packages))
     else
-      select_packages(packages, 'Select Package', format_package_name, select)
+      select_packages(packages, 'Select Package - <Tab> multi | <C-a> all changed', format_package_name, select)
     end
   end
 end

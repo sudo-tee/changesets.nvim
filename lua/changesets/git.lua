@@ -1,4 +1,4 @@
-local utils = require('changesets.utils')
+local u = require('changesets.utils')
 local config = require('changesets.opts')
 
 local M = {}
@@ -27,7 +27,7 @@ function M.get_changed_folders()
   local folders = {}
 
   for _, file in ipairs(changed_files) do
-    local folder = utils.dirname(utils.joinpath(cwd, file))
+    local folder = u.dirname(u.joinpath(cwd, file))
     if not uniq[folder] then
       uniq[folder] = true
       table.insert(folders, folder)

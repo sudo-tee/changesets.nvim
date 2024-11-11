@@ -52,4 +52,8 @@ M.joinpath = vim.fs.joinpath or function(...)
   return (table.concat({ ... }, '/'):gsub('//+', '/'))
 end
 
+M.map = vim.tbl_map
+
+M.empty = vim.tbl_isempty
+
 return M
