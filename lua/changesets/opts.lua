@@ -16,7 +16,7 @@ M.RELEASE_KINDS = { 'patch', 'minor', 'major' }
 ---@type changesets.Opts
 M.default_opts = {
   cwd = vim.fn.getcwd(),
-  changeset_dir = '.changesets',
+  changeset_dir = '.changeset',
   changed_packages_marker = '~',
   changed_packages_highlight = 'TelescopeResultsConstant',
   get_default_text = function()
