@@ -157,6 +157,20 @@ local function update_current_changeset(package_list)
   vim.api.nvim_buf_set_lines(0, 0, -1, true, u.flatten(lines))
 end
 
+local function get_packages_from_current_changeset()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
+  local header_end_line = u.find_last_occurrence(lines, '---')
+  local packages_lines = {}
+
+  for i = 2, header_end_line - 1 do
+    table.insert(packages_lines, lines[i])
+  end
+
+  return u.map(function(line)
+    return line:match('"(.-)":')
+  end, packages_lines)
+end
+
 ---Given the name of a package to change, and the type of a release to generate,
 ---Formats and writes a changeset with the user's preference of name.
 ---@param packages Package[]
@@ -229,23 +243,32 @@ local function get_workspace_packages()
   return packages
 end
 
+---Get the packages that are in the workspace but not in the changeset
+---@return Package[]
+local function get_remaining_workspace_packages()
+  local changeset_packages = get_packages_from_current_changeset()
+  local workspace_packages = get_workspace_packages()
+
+  return vim.tbl_filter(function(package)
+    return not u.contains(changeset_packages, package.name)
+  end, workspace_packages)
+end
+
 ---@param operation Operation
 function M.make_operation(operation)
   local select = on_select_packages(operation)
 
   return function()
     M.changed_files_cache = git.get_changed_folders()
-    if operation == 'add' and vim.bo.filetype ~= 'markdown' then
+
+    if operation == 'add' and vim.bo.filetype ~= 'markdown' and vim.fn.expand('%:p:h') ~= config.opts().changeset_dir then
       print('Current buffer is not a changeset')
       return
     end
 
-    local packages = get_workspace_packages()
-    if #packages == 1 then
-      select(unpack(packages))
-    else
-      select_packages(packages, 'Select Package - <Tab> multi | <C-a> all changed', format_package_name, select)
-    end
+    local packages = operation == 'add' and get_remaining_workspace_packages() or get_workspace_packages()
+
+    select_packages(packages, 'Select Package - <Tab> multi | <C-a> all changed', format_package_name, select)
   end
 end
 

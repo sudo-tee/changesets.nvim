@@ -8,12 +8,16 @@ function M.start_with(str)
 end
 
 ---@param tbl table
----@param predicate function
+---@param predicate function | string
 ---@param opts? table
 ---@return boolean
 function M.contains(tbl, predicate, opts)
   opts = opts or {}
-  return vim.tbl_contains(tbl, predicate, vim.tbl_extend('force', opts, { predicate = true }))
+  if type(predicate) == 'function' then
+    opts.predicate = true
+  end
+
+  return vim.tbl_contains(tbl, predicate, opts)
 end
 
 function M.flatten(tbl)
