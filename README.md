@@ -50,7 +50,7 @@ return { 'sudo-tee/changesets.nvim',
 
 ## ⚙️ Configuration
 
-The following options can be set when calling setup:
+The following options can be set when calling setup or in your opts table:
 
 ```lua
 require('changesets').setup({
