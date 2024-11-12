@@ -117,6 +117,10 @@ end
 ---@param lines string[] the contents of the changeset
 local function on_enter_name(lines)
   return function(filename)
+    if not filename then
+      return
+    end
+
     local filepath = u.joinpath(config.opts().changeset_dir, filename .. '.md')
     vim.cmd('e ' .. filepath)
     vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
