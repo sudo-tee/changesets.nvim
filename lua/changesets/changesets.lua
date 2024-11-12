@@ -198,6 +198,9 @@ local function on_select_release(packages, operation)
   end
 end
 
+---Prompts the user to select a release type
+---@param packages Package[]
+---@param operation Operation
 local function select_release_type(packages, operation)
   vim.ui.select(config.RELEASE_KINDS, {
     prompt = 'Select release type',
@@ -258,6 +261,15 @@ local function get_remaining_workspace_packages()
   end, workspace_packages)
 end
 
+function M.validate_changeset_file()
+  if vim.bo.filetype == 'markdown' and vim.fn.expand('%:p:h') == config.opts().changeset_dir then
+    return true
+  end
+
+  print('Current buffer is a changeset')
+  return false
+end
+
 ---@param operation Operation
 function M.make_operation(operation)
   local select = on_select_packages(operation)
@@ -265,12 +277,17 @@ function M.make_operation(operation)
   return function()
     M.changed_files_cache = git.get_changed_folders()
 
-    if operation == 'add' and vim.bo.filetype ~= 'markdown' and vim.fn.expand('%:p:h') ~= config.opts().changeset_dir then
-      print('Current buffer is not a changeset')
-      return
+    local packages = {}
+    if operation == 'add' and M.validate_changeset_file() then
+      packages = get_remaining_workspace_packages()
+    else
+      packages = get_workspace_packages()
     end
 
-    local packages = operation == 'add' and get_remaining_workspace_packages() or get_workspace_packages()
+    if u.empty(packages) then
+      print('No packages found')
+      return
+    end
 
     select_packages(packages, 'Select Package - <Tab> multi | <C-a> all changed', format_package_name, select)
   end
