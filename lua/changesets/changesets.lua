@@ -56,7 +56,7 @@ local function select_packages(items, prompt, format_entry, callback)
   local displayer = entry_display.create({
     separator = ' ',
     items = {
-      { width = 1 },
+      { width = #config.opts().changed_packages_marker },
       { remaining = true },
     },
   })
