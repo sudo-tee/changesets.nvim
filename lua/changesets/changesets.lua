@@ -4,6 +4,13 @@ local git = require('changesets.git')
 
 local M = {}
 
+---Check if a plugin is available
+---@param plugin string The plugin name to check
+---@return boolean true if plugin is available
+local function has_plugin(plugin)
+  return pcall(require, plugin)
+end
+
 ---@alias Operation 'add'|'create'
 
 ---@class Package
@@ -39,12 +46,42 @@ local format_package_name = function(package)
   }
 end
 
+local function select_packages_with_snacks_picker(packages, prompt, format_entry, callback)
+  ---@module 'snacks'
+  ---@type snacks.picker.Item[]
+  local items = {}
+  for idx, package in ipairs(packages) do
+    table.insert(items, {
+      item = package,
+      idx = idx,
+    })
+  end
+
+  local layout = Snacks.picker.config.layout('select')
+  layout.preview = false
+  layout.layout.title = ' ' .. prompt .. ' '
+  Snacks.picker.pick({
+    items = items,
+    source = 'select',
+    layout = layout,
+    format = function(item)
+      return format_entry(item.item)
+    end,
+    confirm = function(picker, _)
+      local selected = picker:selected({ fallback = true })
+      callback(u.map(function(s)
+        return s.item
+      end, selected))
+    end,
+  })
+end
+
 ---Prompts the user to select or more packages from a list of packages
 ---@param items Package[]
 ---@param prompt string
 ---@param format_entry fun(package: Package): string[]
 ---@param callback fun(selections: Package[])
-local function select_packages(items, prompt, format_entry, callback)
+local function select_packages_with_telescope(items, prompt, format_entry, callback)
   local actions = require('telescope.actions')
   local action_state = require('telescope.actions.state')
   local pickers = require('telescope.pickers')
@@ -289,7 +326,17 @@ function M.make_operation(operation)
       return
     end
 
-    select_packages(packages, 'Select Package - <Tab> multi | <C-a> all changed', format_package_name, select)
+    local has_snacks, _ = has_plugin('snacks')
+    local has_telescope, _ = has_plugin('telescope')
+
+    if has_snacks then
+      select_packages_with_snacks_picker(packages, 'Select Package - <Tab> multi | <C-a> all changed', format_package_name, select)
+    elseif has_telescope then
+      select_packages_with_telescope(packages, 'Select Package - <Tab> multi | <C-a> all changed', format_package_name, select)
+    else
+      print('Error: Neither telescope nor snacks plugin is installed')
+      return
+    end
   end
 end
 

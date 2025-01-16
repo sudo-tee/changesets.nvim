@@ -18,7 +18,7 @@ M.default_opts = {
   cwd = vim.fn.getcwd(),
   changeset_dir = '.changeset',
   changed_packages_marker = '~',
-  changed_packages_highlight = 'TelescopeResultsConstant',
+  changed_packages_highlight = 'Added',
   get_default_text = function()
     return ''
   end,

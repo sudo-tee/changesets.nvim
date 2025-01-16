@@ -1,4 +1,3 @@
-
 # changesets.nvim
 
 Fork of [bennypowers/changesets.nvim](https://github.com/bennypowers/changesets.nvim)
@@ -7,11 +6,12 @@ Easily create [changesets][cs] using your favourite editor.
 
 <figure>
 
-  [screencast][screencast]
+[screencast][screencast]
 
   <figcaption>
 
 Screencast showing how to use changesets.nvim to:
+
 1. pick package(s) from your project repo
 2. pick a release type (`patch`, `minor`, or `major`)
 3. pick a file name (trivial)
@@ -25,7 +25,7 @@ Screencast showing how to use changesets.nvim to:
 
 ```lua
 return { 'sudo-tee/changesets.nvim',
-  dependencies = { 'nvim-telescope/telescope.nvim' },
+  dependencies = { 'nvim-telescope/telescope.nvim', 'folke/snacks.nvim' }, -- choose only one for multiselect
 
   ---@module 'changesets'
   ---@type changesets.Opts
@@ -47,7 +47,6 @@ return { 'sudo-tee/changesets.nvim',
 }
 ```
 
-
 ## ⚙️ Configuration
 
 The following options can be set when calling setup or in your opts table:
@@ -63,14 +62,14 @@ require('changesets').setup({
   -- Marker shown next to changed packages (default: '~')
   changed_packages_marker = '~',
 
-  -- Highlight group for changed packages (default: 'TelescopeResultsConstant')
-  changed_packages_highlight = 'TelescopeResultsConstant',
+  -- Highlight group for changed packages (default: 'Added')
+  changed_packages_highlight = 'Added',
 
   -- Function that returns default text for new changesets (default: returns empty string)
   get_default_text = function()
     return ''
   end,
-}) 
+})
 ```
 
 [cs]: https://github.com/changesets/changesets
