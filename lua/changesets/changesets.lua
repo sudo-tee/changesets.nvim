@@ -52,6 +52,7 @@ local function select_packages_with_snacks_picker(packages, prompt, format_entry
   local items = {}
   for idx, package in ipairs(packages) do
     table.insert(items, {
+      text = package.name,
       item = package,
       idx = idx,
     })
