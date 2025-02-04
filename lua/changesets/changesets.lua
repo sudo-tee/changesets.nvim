@@ -17,18 +17,19 @@ end
 ---@field name string
 ---@field path string
 ---@field changed boolean
+---@field private boolean
 ---
 
 M.changed_files_cache = {}
 
 ---Extract package name from package.json file
 ---@param path string Path to package.json file
----@return string Package name or empty string if not found
-local function get_package_name(path)
+---@return table Package content
+local function get_package_content(path)
   local lines = vim.fn.readfile(path)
   local content = vim.fn.json_decode(table.concat(lines))
 
-  return content and content.name or ''
+  return content
 end
 
 local function find_all_package_jsons()
@@ -63,16 +64,18 @@ local function select_packages_with_snacks_picker(packages, prompt, format_entry
   layout.layout.title = ' ' .. prompt .. ' '
   Snacks.picker.pick({
     items = items,
-    source = 'select',
     layout = layout,
     format = function(item)
       return format_entry(item.item)
     end,
     confirm = function(picker, _)
       local selected = picker:selected({ fallback = true })
-      callback(u.map(function(s)
-        return s.item
-      end, selected))
+      picker:close()
+      vim.schedule(function()
+        callback(u.map(function(s)
+          return s.item
+        end, selected))
+      end)
     end,
   })
 end
@@ -280,7 +283,8 @@ end
 ---@return Package[]
 local function get_workspace_packages()
   local packages = u.map(function(path)
-    return { path = path, name = get_package_name(path), changed = path_is_changed(path) }
+    local content = get_package_content(path)
+    return { path = path, name = content.name, changed = path_is_changed(path), private = content.private }
   end, find_all_package_jsons())
 
   table.sort(packages, sort_by_changed)
