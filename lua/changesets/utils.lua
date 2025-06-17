@@ -1,5 +1,13 @@
 local M = {}
 
+local uv = vim.uv or vim.loop
+
+---@param path string
+function M.file_exists(path)
+  local stat = uv.fs_stat(path)
+  return stat and stat.type == 'file'
+end
+
 ---@param str string
 function M.start_with(str)
   return function(line)
@@ -59,5 +67,7 @@ end
 M.map = vim.tbl_map
 
 M.empty = vim.tbl_isempty
+
+M.filter = vim.tbl_filter
 
 return M

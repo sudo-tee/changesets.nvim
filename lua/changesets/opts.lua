@@ -12,6 +12,7 @@ M.RELEASE_KINDS = { 'patch', 'minor', 'major' }
 ---@field changed_packages_marker string
 ---@field changed_packages_highlight string
 ---@field get_default_text fun(): string
+---@field monorepo_files? string[]|nil
 
 ---@type changesets.Opts
 M.default_opts = {
@@ -22,6 +23,7 @@ M.default_opts = {
   get_default_text = function()
     return ''
   end,
+  monorepo_files = { 'pnpm-workspace.yaml', 'lerna.json', 'turbo.json', 'nx.json', 'rush.json' },
 }
 
 ---@type changesets.Opts

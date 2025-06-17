@@ -278,14 +278,36 @@ local function sort_by_changed(a, b)
   return a.changed
 end
 
+---Check if the current project is a monorepo
+---@return boolean True if the project is a monorepo
+local function is_monorepo()
+  local root = config.opts().cwd
+  local root_package = u.joinpath(root, 'package.json')
+  if get_package_content(root_package) and get_package_content(root_package).workspaces then
+    return true
+  end
+
+  return u.contains(config.opts().monorepo_files, function(file)
+    return u.file_exists(u.joinpath(root, file))
+  end)
+end
+
 ---Provides a list of all the npm package manifests
 ---found in the project directory.
 ---@return Package[]
 local function get_workspace_packages()
+  local package_jsons = find_all_package_jsons()
+
+  if is_monorepo() then
+    package_jsons = u.filter(function(path)
+      return u.joinpath(config.opts().cwd, 'package.json') ~= path
+    end, package_jsons)
+  end
+
   local packages = u.map(function(path)
     local content = get_package_content(path)
     return { path = path, name = content.name, changed = path_is_changed(path), private = content.private }
-  end, find_all_package_jsons())
+  end, package_jsons)
 
   table.sort(packages, sort_by_changed)
 
@@ -303,7 +325,7 @@ local function get_remaining_workspace_packages()
   end, workspace_packages)
 end
 
-function M.validate_changeset_file()
+local function validate_changeset_file()
   if vim.bo.filetype == 'markdown' and vim.fn.expand('%:p:h') == config.opts().changeset_dir then
     return true
   end
@@ -320,7 +342,7 @@ function M.make_operation(operation)
     M.changed_files_cache = git.get_changed_folders()
 
     local packages = {}
-    if operation == 'add' and M.validate_changeset_file() then
+    if operation == 'add' and validate_changeset_file() then
       packages = get_remaining_workspace_packages()
     else
       packages = get_workspace_packages()

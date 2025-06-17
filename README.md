@@ -69,6 +69,9 @@ require('changesets').setup({
   get_default_text = function()
     return ''
   end,
+
+  -- List of known monorepo files (default: {'pnpm-workspace.yaml', 'lerna.json', 'turbo.json', 'nx.json', 'rush.json'})
+  monorepo_files = { 'pnpm-workspace.yaml', 'lerna.json', 'turbo.json', 'nx.json', 'rush.json' },
 })
 ```
 
