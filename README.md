@@ -8,7 +8,7 @@ Easily create [changesets][cs] using your favourite editor.
 
 [screencast][screencast]
 
-  <figcaption>
+<figcaption>
 
 Screencast showing how to use changesets.nvim to:
 

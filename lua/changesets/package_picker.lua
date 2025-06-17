@@ -212,6 +212,26 @@ end
 ---@param packages Package[]
 ---@param prompt string
 ---@param callback fun(selections: Package[])
+local function basic_ui(packages, prompt, callback)
+  local items = u.map(function(package)
+    return { text = (package.changed and config.opts().changed_packages_marker or '') .. package.name, package }
+  end, packages)
+
+  vim.ui.select(items, {
+    prompt = 'Select a package',
+    format_item = function(item)
+      return item.text
+    end,
+  }, function(selected)
+    if selected and callback then
+      callback({ selected })
+    end
+  end)
+end
+
+---@param packages Package[]
+---@param prompt string
+---@param callback fun(selections: Package[])
 function M.pick(packages, prompt, callback)
   local picker = get_best_picker()
   local wrapped_callback = vim.schedule_wrap(callback)
@@ -226,7 +246,8 @@ function M.pick(packages, prompt, callback)
     elseif picker == 'snacks' then
       snacks_picker_ui(packages, prompt, wrapped_callback)
     else
-      vim.notify('No suitable picker found. Please install snacks.nvim, telescope.nvim, fzf, or mini.pick.', vim.log.levels.ERROR)
+      vim.notify('No suitable picker found.\n Falling back to vim.ui.select', vim.log.levels.WARN)
+      basic_ui(packages, prompt, wrapped_callback)
     end
   end)
 end
