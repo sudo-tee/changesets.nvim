@@ -25,7 +25,7 @@ Screencast showing how to use changesets.nvim to:
 
 ```lua
 return { 'sudo-tee/changesets.nvim',
-  dependencies = { 'nvim-telescope/telescope.nvim', 'folke/snacks.nvim' }, -- choose only one for multiselect
+  dependencies = { 'nvim-telescope/telescope.nvim', 'folke/snacks.nvim', 'echasnovski/mini.pick', 'ibhagwan/fzf-lua' }, -- choose only one for multi-select
 
   ---@module 'changesets'
   ---@type changesets.Opts
@@ -75,6 +75,10 @@ require('changesets').setup({
 
   -- Function to modify or filter the list of found packages (default: nil)
   filter_packages = nil, -- function(packages: Package[]): Package[]|nil
+
+  -- set your preferred picker for selecting packages
+  preferred_picker = 'telescope', 'telescope'|'fzf'|'mini.pick'|'snacks'|nil
+
 })
 ```
 
