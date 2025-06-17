@@ -4,13 +4,6 @@ local git = require('changesets.git')
 
 local M = {}
 
----Check if a plugin is available
----@param plugin string The plugin name to check
----@return boolean true if plugin is available
-local function has_plugin(plugin)
-  return pcall(require, plugin)
-end
-
 ---@alias Operation 'add'|'create'
 
 ---@class Package
@@ -36,122 +29,6 @@ local function find_all_package_jsons()
   return u.map(function(path)
     return u.joinpath(config.opts().cwd, path)
   end, git.find_files("'package.json' '**/package.json'"))
-end
-
-local format_package_name = function(package)
-  local opts = config.opts()
-  local hl = package.changed and opts.changed_packages_highlight or ''
-  return {
-    { package.changed and opts.changed_packages_marker or '', hl },
-    { package.name, hl },
-  }
-end
-
-local function select_packages_with_snacks_picker(packages, prompt, format_entry, callback)
-  ---@module 'snacks'
-  ---@type snacks.picker.Item[]
-  local items = {}
-  for idx, package in ipairs(packages) do
-    table.insert(items, {
-      text = package.name,
-      item = package,
-      idx = idx,
-    })
-  end
-
-  local layout = Snacks.picker.config.layout('select')
-  layout.preview = false
-  layout.layout.title = ' ' .. prompt .. ' '
-  Snacks.picker.pick({
-    items = items,
-    layout = layout,
-    format = function(item)
-      return format_entry(item.item)
-    end,
-    confirm = function(picker, _)
-      local selected = picker:selected({ fallback = true })
-      picker:close()
-      vim.schedule(function()
-        callback(u.map(function(s)
-          return s.item
-        end, selected))
-      end)
-    end,
-  })
-end
-
----Prompts the user to select or more packages from a list of packages
----@param items Package[]
----@param prompt string
----@param format_entry fun(package: Package): string[]
----@param callback fun(selections: Package[])
-local function select_packages_with_telescope(items, prompt, format_entry, callback)
-  local actions = require('telescope.actions')
-  local action_state = require('telescope.actions.state')
-  local pickers = require('telescope.pickers')
-  local finders = require('telescope.finders')
-  local conf = require('telescope.config').values
-  local entry_display = require('telescope.pickers.entry_display')
-  local themes = require('telescope.themes')
-
-  local displayer = entry_display.create({
-    separator = ' ',
-    items = {
-      { width = #config.opts().changed_packages_marker },
-      { remaining = true },
-    },
-  })
-
-  local make_display = function(entry)
-    return displayer(format_entry(entry.value))
-  end
-
-  pickers
-    .new(themes.get_dropdown(), {
-      prompt_title = prompt,
-      finder = finders.new_table({
-        results = items,
-        entry_maker = function(entry)
-          return {
-            value = entry,
-            display = make_display,
-            ordinal = entry.name,
-          }
-        end,
-      }),
-      sorter = conf.generic_sorter({}),
-      attach_mappings = function(bufnr, map)
-        actions.select_default:replace(function()
-          local selections = action_state.get_current_picker(bufnr):get_multi_selection()
-
-          if u.empty(selections) then
-            selections = { action_state.get_selected_entry() }
-          end
-
-          actions.close(bufnr)
-
-          callback(u.map(function(s)
-            return s.value
-          end, selections))
-        end)
-
-        local function select_all_changed()
-          local picker = action_state.get_current_picker(bufnr)
-          for _, entry in ipairs(picker.finder.results) do
-            if entry.value.changed then
-              picker._multi:add(entry)
-            end
-          end
-
-          picker:refresh()
-        end
-
-        map('i', '<C-a>', select_all_changed)
-
-        return true
-      end,
-    })
-    :find()
 end
 
 ---Writes a changeset with the given contents and name
@@ -353,17 +230,8 @@ function M.make_operation(operation)
       return
     end
 
-    local has_snacks, _ = has_plugin('snacks')
-    local has_telescope, _ = has_plugin('telescope')
-
-    if has_snacks then
-      select_packages_with_snacks_picker(packages, 'Select Package - <Tab> multi | <C-a> all changed', format_package_name, select)
-    elseif has_telescope then
-      select_packages_with_telescope(packages, 'Select Package - <Tab> multi | <C-a> all changed', format_package_name, select)
-    else
-      print('Error: Neither telescope nor snacks plugin is installed')
-      return
-    end
+    local picker = require('changesets.package_picker')
+    picker.pick(packages, 'Select Package(s) - <Tab> multi | <C-a> all', select)
   end
 end
 

@@ -14,6 +14,7 @@ M.RELEASE_KINDS = { 'patch', 'minor', 'major' }
 ---@field get_default_text fun(): string
 ---@field monorepo_files? string[]|nil
 ---@field filter_packages? fun(packages: Package[]): Package[]|nil
+---@field prefered_picker? 'telescope'|'fzf'|'mini.pick'|'snacks'|nil
 
 ---@type changesets.Opts
 M.default_opts = {
@@ -26,6 +27,7 @@ M.default_opts = {
   end,
   monorepo_files = { 'pnpm-workspace.yaml', 'lerna.json', 'turbo.json', 'nx.json', 'rush.json' },
   filter_packages = nil, -- function(packages: Package[]): Package[]|nil
+  prefered_picker = nil, -- 'telescope' | 'fzf' | 'mini.pick' | 'snacks' | nil
 }
 
 ---@type changesets.Opts

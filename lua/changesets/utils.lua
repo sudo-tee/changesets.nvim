@@ -2,6 +2,13 @@ local M = {}
 
 local uv = vim.uv or vim.loop
 
+---Check if a plugin is available
+---@param plugin string The plugin name to check
+---@return boolean true if plugin is available
+function M.has_plugin(plugin)
+  return pcall(require, plugin)
+end
+
 ---@param path string
 function M.file_exists(path)
   local stat = uv.fs_stat(path)
