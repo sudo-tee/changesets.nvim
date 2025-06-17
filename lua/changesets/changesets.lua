@@ -311,7 +311,7 @@ local function get_workspace_packages()
 
   table.sort(packages, sort_by_changed)
 
-  return packages
+  return config.opts().filter_packages and config.opts().filter_packages(packages) or packages
 end
 
 ---Get the packages that are in the workspace but not in the changeset

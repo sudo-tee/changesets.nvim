@@ -72,6 +72,9 @@ require('changesets').setup({
 
   -- List of known monorepo files (default: {'pnpm-workspace.yaml', 'lerna.json', 'turbo.json', 'nx.json', 'rush.json'})
   monorepo_files = { 'pnpm-workspace.yaml', 'lerna.json', 'turbo.json', 'nx.json', 'rush.json' },
+
+  -- Function to modify or filter the list of found packages (default: nil)
+  filter_packages = nil, -- function(packages: Package[]): Package[]|nil
 })
 ```
 
