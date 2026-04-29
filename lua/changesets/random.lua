@@ -22,6 +22,8 @@
 ---
 
 --- Minimal version Ported to lua by Benny Powers
+math.randomseed(os.time())
+
 
 local M = {}
 
